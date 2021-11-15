@@ -61,6 +61,10 @@ texture.repeat.set(4, 4);
 plane.material.map = texture;
 scene.add(plane);
 
+
+// Pixel test
+
+
 // Simple lighting calculations
 const color = 0xFFFFFF;
 const intensity = .75;
