@@ -1,59 +1,18 @@
 import { AmbientLight, BoxGeometry, Color, DirectionalLight, DoubleSide, LinearFilter, Mesh, MeshBasicMaterial, MeshPhongMaterial, NearestFilter, PCFSoftShadowMap, PerspectiveCamera, PlaneGeometry, RepeatWrapping, Scene, SpotLight, Texture, TextureLoader, Vector2, Vector3, WebGLRenderer, WebGLRenderTarget } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { randRange } from './NandCUtils'
-import { Particle } from './Particle'
+import { randRange } from '../NandCUtils'
 
+// set up Camera 
+const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.z = 6;
 
-
-// set up 6 cameras representing, 5 showing views inside the box and 1 camera to view entire scene
-const camMain = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const camCeiling = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-const camFloor = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const camBackWall = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-const camLeftWall = new PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
-const camRightWall = new PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
-
-// set up scenes representing, 5 showing views inside the box and 1 camera to view entire scene
-//const sceneMain = new Scene();
 const scene = new Scene();
 scene.background = new Color(0x221111);
 
+// render target to write to offscreen buffer as eventual texture
+const renderTarget = new WebGLRenderTarget(window.innerWidth, window.innerHeight);
 
-const sceneCeiling = new Scene()
-const sceneFloor = new Scene()
-const sceneBackWall = new Scene()
-const sceneLeftWall = new Scene()
-const sceneRightWall = new Scene()
-
-// set up 5 render targets
-const renderTargetCeiling = new WebGLRenderTarget(window.innerWidth, window.innerHeight);
-const renderTargetFloor = new WebGLRenderTarget(window.innerWidth, window.innerHeight);
-const renderTargetBackWall = new WebGLRenderTarget(window.innerWidth, window.innerHeight);
-const renderTargetLeftWall = new WebGLRenderTarget(window.innerWidth, window.innerHeight);
-const renderTargetRightWall = new WebGLRenderTarget(window.innerWidth, window.innerHeight);
-
-
-
-
-// set up cameras
-camMain.position.z = 6;
-
-camCeiling.position.y = -1.5;
-camCeiling.rotateX(Math.PI / 2);
-
-camFloor.position.y = 1.5;
-camFloor.rotateX(-Math.PI / 2);
-
-camBackWall.position.z = 1;
-
-camLeftWall.position.x = 2.5;
-camLeftWall.rotateY(Math.PI / 2);
-
-camRightWall.position.x = -2.5;
-camRightWall.rotateY(-Math.PI / 2);
-
-
-// main renderer
+//  renderer
 let renderer = new WebGLRenderer({ antialias: true })
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.shadowMap.enabled = true;
@@ -61,7 +20,7 @@ renderer.shadowMap.type = PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement)
 
 // based on main scene camera
-const controls = new OrbitControls(camMain, renderer.domElement)
+const controls = new OrbitControls(camera, renderer.domElement)
 
 // outer box wireframe (on main scene)
 const geometry = new BoxGeometry(5, 3, 3)

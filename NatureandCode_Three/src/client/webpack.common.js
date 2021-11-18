@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-    entry: './src/client/client.ts',
+    entry: './src/client/ReflectiveCube/client.ts',
     // entry: './src/client/RenderTargetClient.ts',
     module: {
         rules: [
