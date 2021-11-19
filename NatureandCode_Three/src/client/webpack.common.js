@@ -1,8 +1,8 @@
 const path = require('path');
 
 module.exports = {
-    entry: './src/client/ReflectiveCube/client.ts',
-    // entry: './src/client/RenderTargetClient.ts',
+    //entry: './src/client/ReflectiveCube/client.ts',
+    entry: './src/client/PaintedCube/sketch.ts',
     module: {
         rules: [
             {
