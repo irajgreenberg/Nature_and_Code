@@ -3,7 +3,7 @@
 // Code appropriated from:
 // https://threejsfundamentals.org/threejs/lessons/threejs-canvas-textures.html
 
-import { AmbientLight, BoxGeometry, CanvasTexture, Color, DirectionalLight, Mesh, MeshBasicMaterial, MeshPhongMaterial, PCFSoftShadowMap, PerspectiveCamera, Scene, SphereGeometry, SpotLight, WebGLRenderer } from 'three'
+import { AmbientLight, BoxGeometry, CanvasTexture, ClampToEdgeWrapping, Color, DirectionalLight, Mesh, MeshBasicMaterial, MeshPhongMaterial, MirroredRepeatWrapping, PCFSoftShadowMap, PerspectiveCamera, RepeatWrapping, Scene, SphereGeometry, SpotLight, WebGLRenderer } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
 // Get 2D canvas context. By default this type is null.
@@ -21,6 +21,10 @@ if (ctx) {
     ctx.fillStyle = '#FFF';
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     texture = new CanvasTexture(ctx.canvas);
+    texture.wrapS = RepeatWrapping;
+    texture.wrapT = RepeatWrapping;
+    texture.repeat.x = 1;
+    texture.repeat.y = 1;
 }
 
 // requires 1 arg, with 2nd max optional
@@ -100,8 +104,11 @@ if (ctx) {
     scene.add(cube);
 
 
-    const sphereGeom = new SphereGeometry(2, 17, 17);
+    const sphereGeom = new SphereGeometry(2, 12, 12);
     // we know texture is not undefined here, so force TS compiler to accept it using !, the non-null operator
+   // texture!.wrapS = texture!.wrapT = ClampToEdgeWrapping;
+    // texture!.repeat.set( 125, 125 );
+    // texture!.offset.set( 15, 15 );
     const sphereMat = new MeshPhongMaterial({ map: texture!, color: 0xBB55FF});
 
     sphere = new Mesh(sphereGeom, sphereMat);
