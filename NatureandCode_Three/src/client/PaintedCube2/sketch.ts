@@ -110,8 +110,6 @@ function drawRandomDot() {
             }
         }
 
-
-
     }
 }
 
