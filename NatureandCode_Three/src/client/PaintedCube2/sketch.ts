@@ -1,13 +1,8 @@
-// Add real time texturing to Three
+// Add real time texturing using Canvas 2D context
 
-// Code appropriated from:
-// https://threejsfundamentals.org/threejs/lessons/threejs-canvas-textures.html
-
-import { AmbientLight, BoxGeometry, CanvasTexture, ClampToEdgeWrapping, Color, DirectionalLight, ImageUtils, LoadingManager, Mesh, MeshBasicMaterial, MeshPhongMaterial, MirroredRepeatWrapping, PCFSoftShadowMap, PerspectiveCamera, RepeatWrapping, Scene, SphereGeometry, SpotLight, Vector2, Vector3, WebGLRenderer } from 'three'
+import { AmbientLight, BoxGeometry, CanvasTexture, ClampToEdgeWrapping, Color, DirectionalLight, Mesh, MeshPhongMaterial, PCFSoftShadowMap, PerspectiveCamera, Scene, SphereGeometry, SpotLight, Vector2, Vector3, WebGLRenderer } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { randRange } from '../NandCUtils'
-import { Particle } from './Particle'
 
 // Get 2D canvas context. By default this type is null.
 const ctx = document.createElement('canvas').getContext('2d');
@@ -17,18 +12,22 @@ let cube: Mesh;
 let sphere: Mesh;
 
 const PART_COUNT = 200;
+let liveCounter = 0;
+let birthRate = .06;
 const rad: number[] = [];
 let pos: Vector3[] = [];
 let spd: Vector3[] = [];
 const col: Color[] = [];
 const grav: number[] = [];
 const GRAVITY = .03;
+const particleDistance = 39;
 
 const geomDim = new Vector2(150, 150);
 for (let i = 0; i < PART_COUNT; i++) {
     rad[i] = randRange(.02, 2);
     col[i] = new Color(Math.random() * 0xffffff);
-    spd[i] = new Vector3(randRange(-1.09, 1.09), randRange(-.07, .07), 0);
+    console.log(col[i]);
+    spd[i] = new Vector3(randRange(-1.09, 1.09), randRange(-.17, .17), 0);
     pos[i] = new Vector3(geomDim.x / 2, geomDim.y / 2, 0);
     grav[i] = randRange(-.003, .003);
 }
@@ -38,38 +37,24 @@ for (let i = 0; i < PART_COUNT; i++) {
 if (ctx) {
     ctx.canvas.width = geomDim.x;
     ctx.canvas.height = geomDim.y;
-    //ctx.fillStyle = '0xBB55F';
-    //ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     texture = new CanvasTexture(ctx.canvas);
     texture.wrapS = ClampToEdgeWrapping;
     texture.wrapT = ClampToEdgeWrapping;
-    // texture.repeat.x = 1;
-    // texture.repeat.y = 1;
-    // ctx.fill();
-}
-
-// requires 1 arg, with 2nd max optional
-function randInt(min: number, max?: number) {
-    if (max === undefined) {
-        max = min;
-        min = 0;
-    }
-    return Math.random() * (max - min) + min | 0;
 }
 
 function drawRandomDot() {
     if (ctx) {
-        // clear shape background for animation
-        // or don't for painting
-        ctx.globalAlpha = 0.1
-        ctx.fillStyle = '0xBB55FF';
+        // clears shape background for animation
+        ctx.fillStyle = 'rgba(105, 220, 115, 0.1)';
         ctx.fillRect(0, 0, 150, 150);
-        ctx.fill();
 
         // draw particles
-        ctx.globalAlpha = 1
-        for (let i = 0; i < PART_COUNT; i++) {
-            ctx.fillStyle = col[i].getStyle();
+        for (let i = 0; i < liveCounter; i++) {
+            ctx.fillStyle = `rgb(
+                ${col[i].r * 255},
+                ${col[i].g * 255},
+                ${col[i].b * 255})`;
+
             ctx.beginPath();
             ctx.arc(pos[i].x, pos[i].y, rad[i], 0, Math.PI * 2);
             pos[i].x += spd[i].x;
@@ -77,6 +62,7 @@ function drawRandomDot() {
             pos[i].y += spd[i].y;
             ctx.fill();
 
+            // collide with rectangle edges
             if (pos[i].x > geomDim.x - rad[i]) {
                 pos[i].x = geomDim.x - rad[i];
                 spd[i].x *= -1;
@@ -95,11 +81,12 @@ function drawRandomDot() {
 
             ctx.strokeStyle = 'orange';
             ctx.lineWidth = .1
-            for (let j = 0; j < PART_COUNT; j++) {
+            for (let j = 0; j < liveCounter; j++) {
                 if (i !== j) {
                     let x = pos[i].x - pos[j].x
                     let y = pos[i].y - pos[j].y
-                    if (Math.sqrt(x * x + y * y) < 15) {
+                    // draw lines between nearby particles
+                    if (Math.sqrt(x * x + y * y) < particleDistance) {
                         ctx.beginPath();       // Start a new path
                         ctx.moveTo(pos[i].x, pos[i].y);    // Move the pen to (30, 50)
                         ctx.lineTo(pos[j].x, pos[j].y);  // Draw a line to (150, 100)
@@ -109,7 +96,9 @@ function drawRandomDot() {
 
             }
         }
-
+        if (liveCounter < PART_COUNT - birthRate) {
+            liveCounter += birthRate;
+        }
     }
 }
 
@@ -150,30 +139,14 @@ spot.shadow.mapSize.height = 1024 * 4;
 scene.add(spot);
 
 
-// add test Cube
+// add Cube
 if (ctx) {
     const boxGeom = new BoxGeometry(3, 3, 3);
     // we know texture is not undefined here, so force TS compiler to accept it using !, the non-null operator
     const boxMat = new MeshPhongMaterial({ map: texture!, color: 0xBB55FF });
 
     cube = new Mesh(boxGeom, boxMat);
-    // cube.position.x -= 3;
-    // cube.position.y += 2;
     scene.add(cube);
-
-
-    const sphereGeom = new SphereGeometry(2, 12, 12);
-    // we know texture is not undefined here, so force TS compiler to accept it using !, the non-null operator
-    // texture!.wrapS = texture!.wrapT = ClampToEdgeWrapping;
-    // texture!.repeat.set( 125, 125 );
-    // texture!.offset.set( 15, 15 );
-    const sphereMat = new MeshPhongMaterial({ map: texture!, color: 0xBB55FF });
-
-    sphere = new Mesh(sphereGeom, sphereMat);
-    sphere.position.x += 3;
-    sphere.position.y += 2;
-    // scene.add(sphere);
-
 }
 
 
@@ -182,9 +155,6 @@ function animate() {
     controls.update();
     cube.rotateX(Math.PI / 540);
     cube.rotateY(Math.PI / 720);
-
-    sphere.rotateX(-Math.PI / 540);
-    sphere.rotateZ(Math.PI / 720);
 
     drawRandomDot();
 
